@@ -1,5 +1,5 @@
 #!/bin/sh
 #
- . $HOME/.set_path
+ . $HOME/.local/bin/set_path
 
 
