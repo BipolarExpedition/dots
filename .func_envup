@@ -1,0 +1,167 @@
+# vi: ft=sh :
+# shellcheck shell=sh
+# shellcheck disable=SC3043
+
+envup() {
+    # Get Environment variables for customization
+    local ENVUP_VAR_MAXUP="${ENVUP_CONST_MAX_LEVELS:-4}"
+    local ENVUP_VAR_AUTO_CONF="${ENVUP_CONST_AUTO_CONFIRM:-1}"
+
+    local ENVUP_VAR_PWD
+    ENVUP_VAR_PWD="$(pwd)"   # Directory we start in
+    
+    local GOOD2GO=0
+    local ENVUP_VAR_CUR_LEVEL=0
+    local ENVUP_VAR_ENVDIR=""
+    local ENVUP_VAR_PYPROJECT=""
+    local ENVUP_VAR_ENV_GUESS=""
+
+    # Used to keep track of where we are searching
+    local ENVUP_VAR_DIR="$ENVUP_VAR_PWD"
+
+    echo "Working Dir:      $ENVUP_VAR_PWD"
+
+    # *** FIND_ENV ***
+    # search for a .venv or project-specific environment in parent directories
+    while [ "$ENVUP_VAR_DIR" != "/" ]; do
+        # Keep track of what level we are at
+        ENVUP_VAR_CUR_LEVEL=$((ENVUP_VAR_CUR_LEVEL + 1))
+
+        # If we went higher than ENVUP_VAR_MAXUP defines, exit with error
+        if [ "$ENVUP_VAR_CUR_LEVEL" -gt "$ENVUP_VAR_MAXUP" ]; then
+            # echo "DEBUG: $ENVUP_VAR_CUR_LEVEL EXCEEDING $ENVUP_VAR_MAXUP"
+            break
+        fi
+
+        # Check for .venv directory
+        if [ -d "$ENVUP_VAR_DIR/.venv" ]; then
+            echo "Found .venv in    $ENVUP_VAR_DIR" >&2
+            ENVUP_VAR_ENV_GUESS="venv"
+            ENVUP_VAR_ENVDIR="$ENVUP_VAR_DIR"
+            break
+        # Check for pyproject.toml for Hatch or Poetry
+        elif [ -f "$ENVUP_VAR_DIR/pyproject.toml" ]; then
+            ENVUP_VAR_PYPROJECT="$ENVUP_VAR_DIR/pyproject.toml"
+            # echo "Reading pyproject.toml in $ENVUP_VAR_DIR"
+            if grep -q 'tool.poetry' "$ENVUP_VAR_DIR/pyproject.toml"; then
+                echo "Found Poetry env  $ENVUP_VAR_DIR (pyproject.toml)" >&2
+                ENVUP_VAR_ENV_GUESS="poetry"
+                ENVUP_VAR_ENVDIR="$ENVUP_VAR_DIR"
+                break
+            elif grep -q 'tool.hatch' "$ENVUP_VAR_DIR/pyproject.toml"; then
+                echo "Found Hatch env   $ENVUP_VAR_DIR (pyproject.toml)" >&2
+                ENVUP_VAR_ENV_GUESS="hatch"
+                ENVUP_VAR_ENVDIR="$ENVUP_VAR_DIR"
+                break
+            fi
+        fi
+        ENVUP_VAR_DIR=$(dirname "$ENVUP_VAR_DIR")
+    done
+    # ***************
+
+    # shellcheck disable=SC3037
+    # echo -e "DEBUG: ***\n\tenvdir: \t$ENVUP_VAR_ENVDIR\n\tcur_level: \t$ENVUP_VAR_CUR_LEVEL\n\tENVUP_VAR_MAXUP: \t$ENVUP_VAR_MAXUP\n\tauto_conf: \t$ENVUP_VAR_AUTO_CONF\n"
+    if [ -n "$ENVUP_VAR_ENVDIR" ] && [ "$ENVUP_VAR_CUR_LEVEL" -gt 0 ]; then
+        local confirmation
+        GOOD2GO=3 # "true"
+        if [ "$ENVUP_VAR_CUR_LEVEL" -gt "$ENVUP_VAR_AUTO_CONF" ]; then
+            GOOD2GO=0 # "false"
+            echo ""
+            printf "Activate environment? (y/n): "
+            read -r confirmation
+
+            if [ "$confirmation" = "y" ] || [ "$confirmation" = "Y" ]; then
+                GOOD2GO=3  # "true"
+            fi
+        fi
+        
+        if [ "$GOOD2GO" -eq 3 ]; then
+            echo ""
+            # Activate the environment (e.g., .venv)
+            if [ -d "$ENVUP_VAR_ENVDIR/.venv" ]; then
+                # echo "Running: cd \"$envdir\" && source .venv/bin/activate ; cd \"$ENVUP_VAR_PWD\""
+                cd "$ENVUP_VAR_ENVDIR" || return 1
+                #echo "Dir: $(pwd)"
+                # shellcheck disable=SC1091
+                . .venv/bin/activate
+                cd "$ENVUP_VAR_PWD" || return 1
+            elif [ -n "$ENVUP_VAR_ENV_GUESS" ] && [ -f "$ENVUP_VAR_PYPROJECT" ]; then
+                # Check if it's a Hatch environment
+                if [ "$ENVUP_VAR_ENV_GUESS" = "hatch" ]; then
+                    echo "Activating Hatch environment..."
+                    if command -v hatch >/dev/null 2>&1; then
+                        cd "$ENVUP_VAR_ENVDIR" || return 1
+                        hatch shell
+                        cd "$ENVUP_VAR_PWD" || return 1
+                    else
+                        echo "Hatch is not installed. Please install it to activate the environment."
+                    fi
+                fi
+                # Check if it's a Poetry environment
+                if [ "$ENVUP_VAR_ENV_GUESS" = "poetry" ]; then
+                    echo "Activating Poetry environment..."
+                    if command -v poetry >/dev/null 2>&1; then
+                        cd "$ENVUP_VAR_ENVDIR" || return 1
+                        poetry shell 
+                        cd "$ENVUP_VAR_PWD" || return 1
+                    else
+                        echo "Poetry is not installed. Please install it to activate the environment."
+                    fi
+                fi
+            fi
+        else
+            echo "Not activating."
+        fi
+    else
+        if [ "$ENVUP_VAR_CUR_LEVEL" -gt "$ENVUP_VAR_MAXUP" ]; then
+            echo "Nothing found in tree [Max $ENVUP_VAR_MAXUP branches]"
+        else
+            echo "No environment found in this directory or parent directories."
+        fi
+    fi
+}
+
+envdown() {
+    local ENVUP_VAR_PWD
+    ENVUP_VAR_PWD="$(pwd)"
+
+    local virte="$VIRTUAL_ENV"
+    local confirmation
+
+    # echo "virte: $virte"
+    # Check what type of environment we're in
+    if [ -n "$virte" ] && [ -d "${virte}/bin" ] && [ -f "${virte}/pyvenv.cfg" ]; then
+        echo "Virtual environment has a 'deactivate' command. Deactivating"
+        deactivate
+    else
+        #if [ $(echo "$VIRTUAL_ENV" | grep -i "/\.local/share/hatch/") ]; then
+        if [ -n "$HATCH_ENV_ACTIVE" ]; then
+            echo "Hatch env found active. Exiting."
+            confirmation=y
+            if [ -n "$SHLVL" ] && [ "$SHLVL" -lt 2 ]; then
+                printf "Top shell session. May exit terminal. Continue? (y/n): "
+                read -r confirmation
+            fi
+            if [ "$confirmation" = "y" ] || [ "$confirmation" = "Y" ]; then
+                exit
+            else
+                echo "Not exiting the environment"
+            fi
+        elif [ -n "$POETRY_ACTIVE" ]; then
+            echo "Poetry env found active. Exiting."
+            confirmation=y
+            # checking SHLVL to see if we are a shell in a shell
+            if [ -n "$SHLVL" ] && [ "$SHLVL" -lt 2 ]; then
+                printf "Top shell session. May exit terminal. Continue? (y/n): "
+                read -r confirmation
+            fi
+            if [ "$confirmation" = "y" ] || [ "$confirmation" = "Y" ]; then
+                exit
+            else
+                echo "Not exiting the environment"
+            fi
+        else
+            echo "No recognized environment to deactivate."
+        fi
+    fi
+}

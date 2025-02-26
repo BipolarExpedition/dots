@@ -1,0 +1,33 @@
+# shellcheck disable=SC2148
+#
+#
+
+# Function to add a directory to PATH if it exists
+#   Optional argument: "before" to add to beginning of PATH
+pathadd() {
+    # First, check if the directory is NOT in the path
+    if ! echo "$PATH" | grep -E -q "(^|:)$1($|:)"; then
+        # Does the directory exist?
+        if [ -d "$1" ]; then
+            # Check if "before" was given as a second argument
+            if [ "$2" = "before" ]; then
+                # ${string:+suffix} only adds suffix if string is not empty
+                export PATH="$1${PATH:+:$PATH}"
+            else
+                export PATH="${PATH:+"$PATH:"}$1"
+            fi
+        fi
+    fi
+}
+
+export pathadd
+
+# Add user's bin directory to PATH
+pathadd "$HOME/bin" "before"
+
+# Add user's .local/bin directory to PATH
+pathadd "$HOME/.local/bin" "before"
+
+export PATH
+
+

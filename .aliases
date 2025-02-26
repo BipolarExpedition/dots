@@ -1,0 +1,43 @@
+# shell commands for defining aliases, that can be imported
+# vi: ft=sh :
+
+if [ -n "$(which eza)" ]; then
+    alias l='eza -A --icons=auto'
+    alias ll='eza --smart-group -AlgO'
+else
+    alias l='ls -AhF'
+    alias ll='ls -AhlF'
+fi
+
+alias webget='wget --xattr -w 4 --random-wait --restrict-file-names=windows --content-disposition --trust-server-names'
+alias dotpubwin='dotnet publish /p:EnableWindowsTargeting=true --runtime win-x64'
+
+if [ -n "$(which nvim)" ]; then
+    alias vim="nvim"
+else
+    alias vim="vim"
+fi
+
+if [ -n "$(which notify-send)" ]; then
+    alias alert='notify-send --urgency=low --expire-time=0 -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"'
+else
+    alias alert="echo"
+fi
+
+if [ -n "$(which code)" ]; then
+    alias codeansible='code -n --profile "Ansible"'
+    alias codedocker='code -n --profile "Docker"'
+    alias codego='code -n --profile "Go"'
+    alias codeplatform='code -n --profile "PlatformIO"'
+    alias codepython='code -n --profile "Python"'
+    alias coderust='code -n --profile "Rust"'
+    alias codepoly='code -n --profile "Polyglot"'
+    alias codeshell='code -n --profile "Shell"'
+fi
+
+
+# alias FUCK='sudo $(fc -ln -1)'
+# alias please=sudo
+# alias yeet='yay -R'
+# alias whoisonmc="mcstatus 127.0.0.1\:26656 status"
+# alias watchmc="tail -n 9200 -s 5 --follow=name /home/amp/.ampdata/instances/ATM901/Minecraft/logs/latest.log | grep -Ei '(joined|disconnected)'"
