@@ -24,6 +24,7 @@ else
     alias alert="echo"
 fi
 
+alias vim="nvim"
 if [ -n "$(which code)" ]; then
     alias codeansible='code -n --profile "Ansible"'
     alias codedocker='code -n --profile "Docker"'
@@ -34,7 +35,6 @@ if [ -n "$(which code)" ]; then
     alias codepoly='code -n --profile "Polyglot"'
     alias codeshell='code -n --profile "Shell"'
 fi
-
 
 # alias FUCK='sudo $(fc -ln -1)'
 # alias please=sudo

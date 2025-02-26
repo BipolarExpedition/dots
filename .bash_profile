@@ -7,10 +7,9 @@
 # Function to add a directory to PATH if it exists
 #   Optional argument: "before" to add to beginning of PATH
 
-if [ -f "$HOME/.set_path" ]; then
-    source "$HOME/.set_path"
+if [ -f "$HOME/.local/bin/.set_path" ]; then
+    source "$HOME/.local/bin/.set_path"
 fi
-
 
 # Load the MCRCON environment variables
 # shellcheck disable=SC1091

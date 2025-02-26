@@ -8,8 +8,8 @@ envup() {
     local ENVUP_VAR_AUTO_CONF="${ENVUP_CONST_AUTO_CONFIRM:-1}"
 
     local ENVUP_VAR_PWD
-    ENVUP_VAR_PWD="$(pwd)"   # Directory we start in
-    
+    ENVUP_VAR_PWD="$(pwd)" # Directory we start in
+
     local GOOD2GO=0
     local ENVUP_VAR_CUR_LEVEL=0
     local ENVUP_VAR_ENVDIR=""
@@ -71,10 +71,10 @@ envup() {
             read -r confirmation
 
             if [ "$confirmation" = "y" ] || [ "$confirmation" = "Y" ]; then
-                GOOD2GO=3  # "true"
+                GOOD2GO=3 # "true"
             fi
         fi
-        
+
         if [ "$GOOD2GO" -eq 3 ]; then
             echo ""
             # Activate the environment (e.g., .venv)
@@ -102,7 +102,7 @@ envup() {
                     echo "Activating Poetry environment..."
                     if command -v poetry >/dev/null 2>&1; then
                         cd "$ENVUP_VAR_ENVDIR" || return 1
-                        poetry shell 
+                        poetry shell
                         cd "$ENVUP_VAR_PWD" || return 1
                     else
                         echo "Poetry is not installed. Please install it to activate the environment."

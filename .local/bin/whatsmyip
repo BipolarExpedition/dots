@@ -1,21 +1,32 @@
 #!/bin/sh
 # whatsmyip
 
+# Ensure 'ip' command exists
+if [ -z "$(which ip)" ]; then
+    echo "ERROR: The command 'ip' is required for script to function. Exiting."
+    exit 4
+fi
+
 # Get most likely local IP
-echo -n "Gateway: "
 # The address after 'src', for the first line of 'ip addr' that starts with 'default via '.
 defaultroute=$(ip route | grep -P '^default via [^\s]+ dev ' | head -1)
 localip=$(echo $defaultroute | grep -oP 'src \d+\.\d+\.\d+\.\d+' | awk '{ print $2 }')
 gateway=$(echo $defaultroute | grep -oP 'default via \d+\.\d+\.\d+\.\d+' | awk '{ print $3 }')
-echo -e "$gateway\n"
+
+echo "Gateway: $gateway"
 echo "Local:   $localip"
 
+if [ -n "$(which dig)" ]; then
+    # Use dig to ask cloudflare what our external IPv4 is
+    myipv4="$(dig +short txt ch whoami.cloudflare @1.0.0.1 | sed 's/"//g')"
 
+    # Use dig to ask google what our external IPv6 most likely is
+    myipv6="$(dig -6 TXT +short o-o.myaddr.l.google.com @ns1.google.com | sed 's/"//g')"
+    echo -n " IPv4:   $myipv4"
+    echo -n " IPv6:   $myipv6"
+else
+    echo "ERROR: Could not find 'dig' to perform DNS lookup. Exiting."
+    exit 5
+fi
 
-# Use dig to ask cloudflare what our external IPv4 is
-echo -n " IPv4:   "
-echo $(dig +short txt ch whoami.cloudflare @1.0.0.1 | sed 's/"//g')
-
-# Use dig to ask google what our external IPv6 most likely is
-echo -n " IPv6:   "
-echo $(dig -6 TXT +short o-o.myaddr.l.google.com @ns1.google.com | sed 's/"//g')
+echo ""

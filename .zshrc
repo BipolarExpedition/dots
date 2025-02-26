@@ -85,7 +85,7 @@ if [ -f /usr/share/oh-my-zsh/ ]; then
   command-not-found copypath copyfile cp dircycle history urltools z \
   zsh-autosuggestions zsh-syntax-highlighting sudo copybuffer
   )
-  
+
   # Set personal aliases, overriding those provided by Oh My Zsh libs,
   # plugins, and themes. Aliases can be placed here, though Oh My Zsh
   # users are encouraged to define aliases within a top-level file in
@@ -128,9 +128,13 @@ fi
 # Compilation flags
 # export ARCHFLAGS="-arch x86_64"
 
+if [ -f "$HOME/.local/bin/.set_path" ]; then
+    source "$HOME/.local/bin/.set_path"
+fi
+
 if [ -f ~/.aliases ]; then
   . ~/.aliases
 fi
 if [ -f ~/.aliases ]; then
-  . ~/.func_envup
+  . ~/.local/bin/.func_envup
 fi

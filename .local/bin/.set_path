@@ -29,5 +29,3 @@ pathadd "$HOME/bin" "before"
 pathadd "$HOME/.local/bin" "before"
 
 export PATH
-
-
