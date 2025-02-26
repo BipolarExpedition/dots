@@ -1,0 +1,22 @@
+[user]
+	name = Doc
+	email = lastdoc39@gmail.com
+[safe]
+	directory = /home/amp/src/minecaft-incremental-backup
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
+[submodule "3rdparty/hunspell/hunspell"]
+	url = /home/doc/.cache/yay/cutemarked-git/src/hunspell
+[submodule "3rdparty/md4c"]
+	url = /home/doc/.cache/yay/cutemarked-git/src/md4c
+[credential "https://github.com"]
+	helper = 
+	helper = !/usr/bin/gh auth git-credential
+[credential "https://gist.github.com"]
+	helper = 
+	helper = !/usr/bin/gh auth git-credential
+[core]
+	editor = vim
