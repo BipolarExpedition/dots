@@ -9,7 +9,7 @@ fi
 # export PATH=$HOME/bin:$HOME/.local/bin:/usr/local/bin:$PATH
 
 # Path to your Oh My Zsh installation.
-if [ -f /usr/share/oh-my-zsh/ ]; then
+if [ -d /usr/share/oh-my-zsh/ ]; then
   ZSH=/usr/share/oh-my-zsh/
 
 
